@@ -29,11 +29,18 @@ logger = logging.getLogger(__name__)
 class PostgreSQLKVStorage(BaseKVStorage[Dict[str, Any]]):
     """PostgreSQL-based key-value storage backend"""
     
-    def __init__(self, namespace: str, global_config: dict, db_pool: asyncpg.Pool):
+    def __init__(self, namespace: str, global_config: dict):
         super().__init__()
         self.namespace = namespace
         self.global_config = global_config
-        self.db_pool = db_pool
+        
+        # Import db_manager from the database module
+        try:
+            from database import db_manager
+            self.db_pool = db_manager.pool
+        except ImportError:
+            raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
+        
         logger.info(f"PostgreSQL KV Storage initialized for namespace: {namespace}")
     
     async def all_keys(self) -> List[str]:
@@ -103,13 +110,20 @@ class PostgreSQLKVStorage(BaseKVStorage[Dict[str, Any]]):
 class PostgreSQLVectorStorage(BaseVectorStorage):
     """PostgreSQL-based vector storage backend"""
     
-    def __init__(self, namespace: str, global_config: dict, embedding_func: EmbeddingFunc, db_pool: asyncpg.Pool):
+    def __init__(self, namespace: str, global_config: dict, embedding_func: EmbeddingFunc, **kwargs):
         super().__init__()
         self.namespace = namespace
         self.global_config = global_config
         self.embedding_func = embedding_func
-        self.db_pool = db_pool
         self.meta_fields = set()
+        
+        # Import db_manager from the database module
+        try:
+            from database import db_manager
+            self.db_pool = db_manager.pool
+        except ImportError:
+            raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
+        
         logger.info(f"PostgreSQL Vector Storage initialized for namespace: {namespace}")
     
     async def upsert(self, vector_id: str, data: Dict[str, Any]) -> None:
@@ -219,11 +233,18 @@ class PostgreSQLVectorStorage(BaseVectorStorage):
 class PostgreSQLGraphStorage(BaseGraphStorage):
     """PostgreSQL-based graph storage backend"""
     
-    def __init__(self, namespace: str, global_config: dict, db_pool: asyncpg.Pool):
+    def __init__(self, namespace: str, global_config: dict):
         super().__init__()
         self.namespace = namespace
         self.global_config = global_config
-        self.db_pool = db_pool
+        
+        # Import db_manager from the database module
+        try:
+            from database import db_manager
+            self.db_pool = db_manager.pool
+        except ImportError:
+            raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
+        
         logger.info(f"PostgreSQL Graph Storage initialized for namespace: {namespace}")
     
     async def has_node(self, node_id: str) -> bool:
