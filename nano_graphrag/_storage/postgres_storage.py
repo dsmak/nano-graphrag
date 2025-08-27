@@ -12,6 +12,7 @@ All storage classes use the 'namespace' field for multi-tenant isolation (user_i
 import json
 import logging
 import asyncio
+from dataclasses import dataclass
 from typing import Any, Dict, List, Union, Optional, Tuple
 import numpy as np
 import asyncpg
@@ -26,6 +27,7 @@ from nano_graphrag._utils import EmbeddingFunc
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class PostgreSQLKVStorage(BaseKVStorage[Dict[str, Any]]):
     """PostgreSQL-based key-value storage backend"""
     
@@ -34,14 +36,20 @@ class PostgreSQLKVStorage(BaseKVStorage[Dict[str, Any]]):
         self.namespace = namespace
         self.global_config = global_config
         
-        # Import db_manager from the database module
-        try:
-            from database import db_manager
-            self.db_pool = db_manager.pool
-        except ImportError:
-            raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
+    def __post_init__(self):
+        # Get database pool from addon_params or fallback to db_manager
+        addon_params = self.global_config.get('addon_params', {})
+        if 'db_pool' in addon_params:
+            self.db_pool = addon_params['db_pool']
+        else:
+            # Fallback: Import db_manager from the database module
+            try:
+                from database import db_manager
+                self.db_pool = db_manager.pool
+            except ImportError:
+                raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
         
-        logger.info(f"PostgreSQL KV Storage initialized for namespace: {namespace}")
+        logger.info(f"PostgreSQL KV Storage initialized for namespace: {self.namespace}")
     
     async def all_keys(self) -> List[str]:
         """Get all keys in this namespace"""
@@ -107,6 +115,7 @@ class PostgreSQLKVStorage(BaseKVStorage[Dict[str, Any]]):
         pass
 
 
+@dataclass
 class PostgreSQLVectorStorage(BaseVectorStorage):
     """PostgreSQL-based vector storage backend"""
     
@@ -117,14 +126,20 @@ class PostgreSQLVectorStorage(BaseVectorStorage):
         self.embedding_func = embedding_func
         self.meta_fields = set()
         
-        # Import db_manager from the database module
-        try:
-            from database import db_manager
-            self.db_pool = db_manager.pool
-        except ImportError:
-            raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
+    def __post_init__(self):
+        # Get database pool from addon_params or fallback to db_manager
+        addon_params = self.global_config.get('addon_params', {})
+        if 'db_pool' in addon_params:
+            self.db_pool = addon_params['db_pool']
+        else:
+            # Fallback: Import db_manager from the database module
+            try:
+                from database import db_manager
+                self.db_pool = db_manager.pool
+            except ImportError:
+                raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
         
-        logger.info(f"PostgreSQL Vector Storage initialized for namespace: {namespace}")
+        logger.info(f"PostgreSQL Vector Storage initialized for namespace: {self.namespace}")
     
     async def upsert(self, vector_id: str, data: Dict[str, Any]) -> None:
         """Insert or update a vector with metadata"""
@@ -230,6 +245,7 @@ class PostgreSQLVectorStorage(BaseVectorStorage):
         pass
 
 
+@dataclass
 class PostgreSQLGraphStorage(BaseGraphStorage):
     """PostgreSQL-based graph storage backend"""
     
@@ -238,14 +254,20 @@ class PostgreSQLGraphStorage(BaseGraphStorage):
         self.namespace = namespace
         self.global_config = global_config
         
-        # Import db_manager from the database module
-        try:
-            from database import db_manager
-            self.db_pool = db_manager.pool
-        except ImportError:
-            raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
+    def __post_init__(self):
+        # Get database pool from addon_params or fallback to db_manager
+        addon_params = self.global_config.get('addon_params', {})
+        if 'db_pool' in addon_params:
+            self.db_pool = addon_params['db_pool']
+        else:
+            # Fallback: Import db_manager from the database module
+            try:
+                from database import db_manager
+                self.db_pool = db_manager.pool
+            except ImportError:
+                raise RuntimeError("Database manager not available. Cannot initialize PostgreSQL storage.")
         
-        logger.info(f"PostgreSQL Graph Storage initialized for namespace: {namespace}")
+        logger.info(f"PostgreSQL Graph Storage initialized for namespace: {self.namespace}")
     
     async def has_node(self, node_id: str) -> bool:
         """Check if a node exists"""
