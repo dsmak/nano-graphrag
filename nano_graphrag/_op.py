@@ -105,7 +105,7 @@ def get_chunks(new_docs, chunk_func=chunking_by_token_size, **chunk_func_params)
     docs = [new_doc[1]["content"] for new_doc in new_docs_list]
     doc_keys = [new_doc[0] for new_doc in new_docs_list]
 
-    ENCODER = tiktoken.encoding_for_model("gpt-4o")
+    ENCODER = tiktoken.encoding_for_model("gpt-4.1-nano")
     tokens = ENCODER.encode_batch(docs, num_threads=16)
     chunks = chunk_func(
         tokens, doc_keys=doc_keys, tiktoken_model=ENCODER, **chunk_func_params
